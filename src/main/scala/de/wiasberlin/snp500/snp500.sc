@@ -1,6 +1,10 @@
-import java.io.File
+import java.io.{BufferedWriter, File, FileWriter}
+
+
+// pre-processes the data from http://pages.swcp.com/stocks/
 
 class Datum(val date: Int, val company : String, val open : Double, val close: Double) {
+  def getLogReturnRate() = math.log(1+ (close - open) / open)
 
   override def toString = s"Datum($date, $company, $open, $close)"
 }
@@ -18,8 +22,19 @@ val data = io.Source.fromFile(new File("/home/valerij/sp500hst.txt"))
 
 val goodCompanies = data.groupBy(_.date).map(_._2.map(_.company).toSet).reduce(_ intersect _)
 
-data.filter(datum => goodCompanies contains datum.company).length / 379
+val file = new File("/home/valerij/sp500.csv")
+val bw = new BufferedWriter(new FileWriter(file))
 
+val csvLines = data.filter(datum => goodCompanies contains datum.company)
+                    .groupBy(_.date)
+                    .values
+                    .map(_.sortBy(_.company).map(_.getLogReturnRate()))
+                    .map(_.mkString(","))
 
+csvLines.foreach(s => {
+    bw.write(s)
+    bw.newLine()
+  })
 
+bw.close()
 

@@ -6,6 +6,8 @@ package de.wiasberlin.snp500
 class Datum(val date: String, val company : String, val open : Double, val close: Double) {
   def getLogReturnRate() = math.log(1+ (close - open) / open)
 
+  def setDate(newDate : String) = new Datum(newDate, company, open, close)
+
   override def toString = s"Datum($date, $company, $open, $close)"
 }
 

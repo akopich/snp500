@@ -2,24 +2,27 @@ package de.wiasberlin.snp500
 
 import de.wiasberlin.snp500.util.{GetSymbols, SaveStrings}
 
+import scala.collection.mutable.ArrayBuffer
 import scala.io.Source
 
 /**
   * Created by valerij on 12/2/16.
   */
 object DownloadTickData extends App {
-  def getClosest(time0 : Seq[Long], time : Seq[Long]) = {
-    time0.map(t => {
-      val diff = time.map(_ - t).map(math.abs)
-      val min = diff.min
-      diff.indexWhere(_ == min)
+  private def fixGoogleTime(datums : Seq[Datum]) = {
+    datums.foldLeft(Vector[Datum]())((res, datum) => {
+      val isNewDay = datum.date.startsWith("a")
+      val day = (if (res.isEmpty) 0 else res.last.date.split("M").head.toInt) + (if (isNewDay) 1 else 0)
+      val minute = if (isNewDay) 0 else datum.date.toInt
+
+      res :+ datum.setDate(s"${day}M$minute")
     })
   }
 
   private def html2Datums(symbol2html : (String, Source)) = symbol2html match {
     case(symbol, html) => {
       val rawTime = html.getLines().toVector.drop(7).map(Datum.applyToTickData(symbol))
-      rawTime.
+      fixGoogleTime(rawTime)
     }
   }
 
@@ -29,18 +32,24 @@ object DownloadTickData extends App {
 
   private val pathToSymbols = "resourses/constituents.txt"
 
-  val symbols = GetSymbols(pathToSymbols).take(10)
+  val symbols = GetSymbols(pathToSymbols)
 
   val datums = (symbols zip symbols.map(createRequestGoogle).map(io.Source.fromURL)).flatMap(html2Datums)
 
+//  datums.groupBy(_.date).map()
+
   val path = "/home/valerij/tickData"
 
-  val grouped = (datums.groupBy(_.company).map(_._2.length).toSeq)
+  val times = datums.map(_.date).distinct.sorted
+  val datumtime = datums.map(datum => (datum.date, datum.company)).toSet
 
-//  val times = symbols.map(symbol => datums.filter(_.company == symbol).map(_.date.toLong))
-//  val indx = times.drop(1).map(time => getClosest(times(0), time))
+  val lines = symbols.map(symbol => times.map(time => datumtime contains (time, symbol) )
+                                          .map(b => if (b) 1 else 0)
+                                          .mkString(","))
 
-//  println(indx.forall(_ == times(0).indices))
-//
+  SaveStrings(path, lines)
+
+//  SaveStrings("", )
+
   val a =1
 }

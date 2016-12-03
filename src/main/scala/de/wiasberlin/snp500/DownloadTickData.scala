@@ -9,19 +9,19 @@ import scala.io.Source
   * Created by valerij on 12/2/16.
   */
 object DownloadTickData extends App {
-  private def fixGoogleTime(datums : Seq[Datum]) = {
+  private def fixGoogleTime(datums : Seq[DatumWithStringDate]) = {
     datums.foldLeft(Vector[Datum]())((res, datum) => {
       val isNewDay = datum.date.startsWith("a")
-      val day = (if (res.isEmpty) 0 else res.last.date.split("M").head.toInt) + (if (isNewDay) 1 else 0)
+      val day = (if (res.isEmpty) 0 else res.last.date / 10000L) + (if (isNewDay) 1 else 0)
       val minute = if (isNewDay) 0 else datum.date.toInt
 
-      res :+ datum.setDate(s"${day}M$minute")
+      res :+ datum.setDate(day*10000L + minute)
     })
   }
 
   private def html2Datums(symbol2html : (String, Source)) = symbol2html match {
     case(symbol, html) => {
-      val rawTime = html.getLines().toVector.drop(7).map(Datum.applyToTickData(symbol))
+      val rawTime = html.getLines().toVector.drop(7).map(DatumWithStringDate(symbol))
       fixGoogleTime(rawTime)
     }
   }
@@ -48,8 +48,4 @@ object DownloadTickData extends App {
                                           .mkString(","))
 
   SaveStrings(path, lines)
-
-//  SaveStrings("", )
-
-  val a =1
 }

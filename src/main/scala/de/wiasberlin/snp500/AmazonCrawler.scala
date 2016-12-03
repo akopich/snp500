@@ -3,6 +3,7 @@ package de.wiasberlin.snp500
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.concurrent.TimeUnit
 
 import de.wiasberlin.snp500.util.{GetSymbols, SaveStrings}
 
@@ -16,10 +17,13 @@ import yahoofinance.histquotes.{HistoricalQuote, Interval}
 object AmazonCrawler extends App {
   private val pathToSymbols = "resourses/constituents.txt"
 
-  private val dateFormat = new SimpleDateFormat("yyyy-MM-dd")
+  private def roundTimeToDay(milliseconds : Long) = {
+    val millisecondsInDay = TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)
+    (milliseconds / millisecondsInDay) * millisecondsInDay
+  }
 
   private def historicalQuoteToString(quote : HistoricalQuote): String = {
-    s"${dateFormat.format(quote.getDate.getTime)}, ${quote.getSymbol}, ${quote.getOpen}, ${quote.getHigh}, ${quote.getLow}, ${quote.getClose}, ${quote.getVolume}"
+    s"${roundTimeToDay(quote.getDate.getTimeInMillis)}, ${quote.getSymbol}, ${quote.getOpen}, ${quote.getHigh}, ${quote.getLow}, ${quote.getClose}, ${quote.getVolume}"
   }
 
   val from = Calendar.getInstance()

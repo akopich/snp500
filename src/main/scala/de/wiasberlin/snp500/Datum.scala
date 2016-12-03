@@ -8,7 +8,7 @@ class Datum(val date: Long, val company : String, val open : Double, val close: 
 }
 
 object Datum {
-  def apply(s : String) = {
+  def apply(s : String): Datum = {
     val split = s.split(",")
     new Datum(split(0).toLong, split(1), split(2).toDouble, split(5).toDouble)
   }
@@ -20,7 +20,7 @@ class DatumWithStringDate(val date: String, val company : String, val open : Dou
 }
 
 object DatumWithStringDate {
-  def apply(company : String)(s : String) = {
+  def apply(company : String)(s : String): DatumWithStringDate = {
     val split = s.split(",")
     new DatumWithStringDate(split(0), company, split(4).toDouble, split(1).toDouble)
   }

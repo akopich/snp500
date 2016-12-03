@@ -11,10 +11,10 @@ import de.wiasberlin.snp500.util.SaveStrings
   * pre-processes the data from http://pages.swcp.com/stocks/
   */
 object LogReturnCSVGenerator extends App {
-  def datums2logReturnCSV(data : Seq[Datum]) = {
+  def datums2logReturnCSV(data : Seq[Datum]): Seq[String] = {
     val goodCompanies = data.groupBy(_.date).map(_._2.map(_.company).toSet).reduce(_ intersect _)
 
-    val datums = data.filter(datum => goodCompanies contains datum.company)
+    val datums = data.filter(goodCompanies contains _.company)
       .groupBy(_.date).toSeq
       .sortBy(_._1)
       .unzip._2

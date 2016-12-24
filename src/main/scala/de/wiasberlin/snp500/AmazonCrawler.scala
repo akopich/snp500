@@ -15,7 +15,7 @@ import yahoofinance.histquotes.{HistoricalQuote, Interval}
   * Created by valerij on 12/2/16.
   */
 object AmazonCrawler extends App {
-  private val pathToSymbols = "resourses/constituents.txt"
+  private val pathToSymbols = "resourses/constituents100.txt"
 
   private def roundTimeToDay(milliseconds : Long) = {
     val millisecondsInDay = TimeUnit.MILLISECONDS.convert(1, TimeUnit.DAYS)
@@ -26,15 +26,21 @@ object AmazonCrawler extends App {
     s"${roundTimeToDay(quote.getDate.getTimeInMillis)}, ${quote.getSymbol}, ${quote.getOpen}, ${quote.getHigh}, ${quote.getLow}, ${quote.getClose}, ${quote.getVolume}"
   }
 
+  private def historicalQuoteToDatum(quote: HistoricalQuote) : Datum = {
+    new Datum(quote.getDate.getTimeInMillis, quote.getSymbol, quote.getOpen.doubleValue(), quote.getClose.doubleValue())
+  }
+
   val from = Calendar.getInstance()
   val to = Calendar.getInstance()
-  from.add(Calendar.YEAR, -5)
+  from.add(Calendar.YEAR, -10)
 
   val symbols = GetSymbols(pathToSymbols).toArray
 
   val symbol2Stock = YahooFinance.get(symbols, from, to, Interval.DAILY).asScala
-  val dailies = symbol2Stock.toSeq.flatMap(_._2.getHistory.asScala).map(historicalQuoteToString)
+  val dailies = symbol2Stock.toSeq.flatMap(_._2.getHistory.asScala).map(historicalQuoteToDatum)
 
-  val path = "/home/valerij/crawled"
-  SaveStrings(path, dailies)
+  val lines = LogReturnCSVGenerator.datums2logReturnCSV(dailies)
+
+  val path = "/home/valerij/crawled100"
+  SaveStrings(path, lines)
 }

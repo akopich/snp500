@@ -21,17 +21,17 @@ object LogReturnCSVGenerator extends App {
       .map(_.sortBy(_.company))
 
     datums.sliding(2)
-      .map({case(Seq(first, second)) => (first zip second) map LogReturnRate.apply})
-      .map(_.mkString(",")).toSeq
+              .map({case(Seq(first, second)) => (first zip second) map LogReturnRate.apply})
+              .map(_.mkString(",")).toSeq
   }
 
-  val data = io.Source.fromFile(new File("/home/valerij/crawled"))
+  val data = io.Source.fromFile(new File("/home/valerij/crawled100"))
     .getLines
     .map(Datum.apply).toVector
 
   val csvLines = datums2logReturnCSV(data)
 
-  val path = "/home/valerij/crawledsp500.csv"
+  val path = "/home/valerij/crawledsp100.csv"
 
   SaveStrings(path, csvLines)
 }
